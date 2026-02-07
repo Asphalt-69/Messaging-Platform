@@ -1,0 +1,92 @@
+[package]
+name = "message-broker"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Team <dev@yourcompany.com>"]
+description = "High-performance message broker for real-time messaging platform"
+license = "Apache-2.0"
+
+[[bin]]
+name = "message-broker"
+path = "src/main.rs"
+
+[features]
+default = ["tls", "jemalloc"]
+tls = ["nats/tls", "rustls", "async-nats/tls"]
+jemalloc = ["tikv-jemallocator"]
+metrics = ["prometheus", "metrics-exporter-prometheus"]
+opentelemetry = ["opentelemetry", "tracing-opentelemetry"]
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.35", features = ["full", "rt-multi-thread", "time", "signal"] }
+tokio-stream = "0.1.14"
+
+# NATS for gateway communication
+async-nats = { version = "0.34", features = ["jetstream"] }
+nats = "0.25"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+prost = "0.12"
+prost-types = "0.12"
+tonic = { version = "0.10", features = ["tls"] }
+uuid = { version = "1.6", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+# Metrics & Observability
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+tracing-appender = "0.2"
+tracing-opentelemetry = { version = "0.22", optional = true }
+opentelemetry = { version = "0.22", optional = true, features = ["metrics", "trace"] }
+prometheus = { version = "0.13", optional = true }
+metrics = "0.22"
+metrics-exporter-prometheus = { version = "0.13", optional = true }
+
+# Utilities
+anyhow = "1.0"
+thiserror = "1.0"
+dashmap = "5.5"
+arc-swap = "1.6"
+crossbeam-channel = "0.5"
+rayon = "1.8"
+lru = "0.11"
+parking_lot = "0.12"
+bitvec = "1.0"
+bloom = "0.6"
+
+# Cryptography (for future E2EE)
+ring = "0.17"
+aes-gcm = "0.10"
+chacha20poly1305 = "0.10"
+ed25519-dalek = "2.1"
+x25519-dalek = "2.0"
+base64 = "0.21"
+hex = "0.4"
+
+# Memory allocator for performance
+tikv-jemallocator = { version = "0.5", optional = true }
+
+# Config
+config = "0.13"
+dotenv = "0.15"
+
+# HTTP server (for health checks)
+axum = { version = "0.7", features = ["json"] }
+hyper = "0.14"
+tower = "0.4"
+tower-http = { version = "0.4", features = ["trace", "cors"] }
+
+[dev-dependencies]
+criterion = "0.5"
+rand = "0.8"
+test-log = "0.2"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+strip = true
+panic = "abort"
