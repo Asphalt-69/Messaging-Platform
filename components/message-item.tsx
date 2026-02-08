@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MessageCircle, Smile, Download } from 'lucide-react'
+import { MessageCircle, Smile, Download, Check, CheckCheck, Clock, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -18,12 +18,15 @@ interface Reaction {
   users: string[]
 }
 
+type MessageStatus = 'sending' | 'sent' | 'delivered' | 'read' | 'unsent'
+
 interface Message {
   id: string
   content?: string
   senderId: string
   senderName: string
   senderAvatar?: string
+  senderImage?: string
   timestamp: Date
   attachments?: Attachment[]
   reactions?: Reaction[]
@@ -35,6 +38,7 @@ interface Message {
     senderName: string
   }
   isOwn: boolean
+  status?: MessageStatus
 }
 
 interface MessageItemProps {
@@ -49,8 +53,26 @@ export default function MessageItem({
   onAddReaction,
 }: MessageItemProps) {
   const [showReactions, setShowReactions] = useState(false)
+  const [showDelete, setShowDelete] = useState(false)
 
   const commonEmojis = ['👍', '❤️', '😂', '😮', '😢', '🔥']
+
+  const getStatusIcon = (status?: MessageStatus) => {
+    switch (status) {
+      case 'sending':
+        return <Clock className="h-3 w-3" title="Sending..." />
+      case 'sent':
+        return <Check className="h-3 w-3" title="Sent" />
+      case 'delivered':
+        return <CheckCheck className="h-3 w-3" title="Delivered" />
+      case 'read':
+        return <CheckCheck className="h-3 w-3 text-blue-500" title="Read" />
+      case 'unsent':
+        return <Trash2 className="h-3 w-3 text-destructive" title="Unsent" />
+      default:
+        return null
+    }
+  }
 
   return (
     <div
@@ -60,8 +82,12 @@ export default function MessageItem({
     >
       {/* Avatar */}
       {!message.isOwn && (
-        <div className="w-8 h-8 rounded-full bg-accent flex-shrink-0 flex items-center justify-center text-accent-foreground text-xs font-bold">
-          {message.senderAvatar || message.senderName[0]?.toUpperCase()}
+        <div className="w-8 h-8 rounded-full bg-accent flex-shrink-0 flex items-center justify-center text-accent-foreground text-xs font-bold overflow-hidden">
+          {message.senderImage ? (
+            <img src={message.senderImage} alt={message.senderName} className="w-full h-full object-cover" />
+          ) : (
+            message.senderAvatar || message.senderName[0]?.toUpperCase()
+          )}
         </div>
       )}
 
@@ -148,16 +174,17 @@ export default function MessageItem({
             </div>
           )}
 
-          {/* Timestamp */}
-          <span
-            className={`text-xs mt-1 block ${
+          {/* Timestamp and Status */}
+          <div
+            className={`text-xs mt-1 flex items-center gap-1 ${
               message.isOwn
                 ? 'text-accent-foreground/70'
                 : 'text-muted-foreground'
             }`}
           >
-            {formatDistanceToNow(message.timestamp, { addSuffix: true })}
-          </span>
+            <span>{formatDistanceToNow(message.timestamp, { addSuffix: true })}</span>
+            {message.isOwn && getStatusIcon(message.status)}
+          </div>
         </div>
 
         {/* Reactions */}
@@ -197,7 +224,45 @@ export default function MessageItem({
           >
             <MessageCircle className="h-4 w-4" />
           </Button>
+          {message.isOwn && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 w-7 p-0"
+              onClick={() => setShowDelete(!showDelete)}
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          )}
         </div>
+
+        {/* Delete Confirmation */}
+        {showDelete && message.isOwn && (
+          <div className="text-xs bg-destructive/10 border border-destructive rounded p-2 mt-1">
+            <p className="text-destructive mb-1">Unsend message?</p>
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant="destructive"
+                className="h-5 text-xs flex-1"
+                onClick={() => {
+                  // Handle unsend
+                  setShowDelete(false)
+                }}
+              >
+                Unsend
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-5 text-xs flex-1"
+                onClick={() => setShowDelete(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Emoji Picker */}
         {showReactions && (

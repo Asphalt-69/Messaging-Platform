@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { ChevronLeft, Phone, Video, MoreVertical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { UserProfileModal } from '@/components/user-profile-modal'
 import MessageItem from './message-item'
 import MessageInput from './message-input'
 
@@ -12,6 +13,7 @@ interface Message {
   senderId: string
   senderName: string
   senderAvatar?: string
+  senderImage?: string
   timestamp: Date
   attachments?: Array<{
     id: string
@@ -32,14 +34,17 @@ interface Message {
     senderName: string
   }
   isOwn: boolean
+  status?: 'sending' | 'sent' | 'delivered' | 'read' | 'unsent'
 }
 
 interface Chat {
   id: string
   name: string
   avatar?: string
+  image?: string
   isGroup?: boolean
   members?: number
+  userId?: string
 }
 
 interface ChatViewProps {
@@ -52,6 +57,8 @@ export default function ChatView({ chatId, onBackClick }: ChatViewProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [replyingTo, setReplyingTo] = useState<Message | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showProfileModal, setShowProfileModal] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<Chat | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -204,34 +211,61 @@ export default function ChatView({ chatId, onBackClick }: ChatViewProps) {
     )
   }
 
+  const handleOpenUserProfile = () => {
+    if (chat && !chat.isGroup) {
+      setSelectedUser(chat)
+      setShowProfileModal(true)
+    }
+  }
+
   return (
-    <div className="h-full flex flex-col bg-background">
-      {/* Header */}
-      {chat && (
-        <div className="border-b border-border p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {onBackClick && (
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={onBackClick}
-                className="md:hidden"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-            )}
-            <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-semibold flex-shrink-0">
-              {chat.avatar || chat.name[0]?.toUpperCase()}
-            </div>
-            <div>
-              <h2 className="font-semibold">{chat.name}</h2>
-              {chat.isGroup && chat.members && (
-                <p className="text-xs text-muted-foreground">
-                  {chat.members} members
-                </p>
+    <>
+      <UserProfileModal 
+        isOpen={showProfileModal} 
+        onClose={() => setShowProfileModal(false)} 
+        isOwnProfile={false}
+        user={selectedUser ? {
+          id: selectedUser.userId || selectedUser.id,
+          name: selectedUser.name,
+          username: selectedUser.name.toLowerCase().replace(/\s+/g, '_'),
+          avatar_url: selectedUser.image || null,
+        } : undefined}
+      />
+
+      <div className="h-full flex flex-col bg-background">
+        {/* Header */}
+        {chat && (
+          <div className="border-b border-border p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3 flex-1 cursor-pointer hover:opacity-80 transition-opacity" onClick={handleOpenUserProfile}>
+              {onBackClick && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onBackClick()
+                  }}
+                  className="md:hidden"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
               )}
+              <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-semibold flex-shrink-0 overflow-hidden">
+                {chat.image ? (
+                  <img src={chat.image} alt={chat.name} className="w-full h-full object-cover" />
+                ) : (
+                  chat.avatar || chat.name[0]?.toUpperCase()
+                )}
+              </div>
+              <div>
+                <h2 className="font-semibold">{chat.name}</h2>
+                {chat.isGroup && chat.members && (
+                  <p className="text-xs text-muted-foreground">
+                    {chat.members} members
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
 
           <div className="flex items-center gap-2">
             <Button size="icon" variant="ghost">
@@ -282,5 +316,6 @@ export default function ChatView({ chatId, onBackClick }: ChatViewProps) {
         onCancelReply={() => setReplyingTo(null)}
       />
     </div>
+    </>
   )
 }

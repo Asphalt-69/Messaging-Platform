@@ -1,9 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Plus } from 'lucide-react'
+import { Search, Plus, Settings, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { ThemeToggle } from '@/components/theme-toggle'
+import { UserProfileModal } from '@/components/user-profile-modal'
+import { AddFriendModal } from '@/components/add-friend-modal'
 
 interface Chat {
   id: string
@@ -24,6 +27,8 @@ export default function ChatList({ selectedChatId, onSelectChat }: ChatListProps
   const [chats, setChats] = useState<Chat[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
+  const [showProfileModal, setShowProfileModal] = useState(false)
+  const [showAddFriendModal, setShowAddFriendModal] = useState(false)
 
   useEffect(() => {
     fetchChats()
@@ -49,15 +54,37 @@ export default function ChatList({ selectedChatId, onSelectChat }: ChatListProps
   )
 
   return (
-    <div className="w-full h-full flex flex-col bg-background border-r border-border">
-      {/* Header */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Messages</h1>
-          <Button size="icon" variant="ghost" className="h-9 w-9">
-            <Plus className="h-5 w-5" />
-          </Button>
-        </div>
+    <>
+      <UserProfileModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} isOwnProfile={true} />
+      <AddFriendModal isOpen={showAddFriendModal} onClose={() => setShowAddFriendModal(false)} />
+      
+      <div className="w-full h-full flex flex-col bg-background border-r border-border">
+        {/* Header */}
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-bold">Messages</h1>
+            <div className="flex gap-2">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-9 w-9"
+                onClick={() => setShowAddFriendModal(true)}
+                title="Add friend"
+              >
+                <Users className="h-5 w-5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-9 w-9"
+                onClick={() => setShowProfileModal(true)}
+                title="Profile settings"
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
+              <ThemeToggle />
+            </div>
+          </div>
 
         {/* Search */}
         <div className="relative">
@@ -130,5 +157,6 @@ export default function ChatList({ selectedChatId, onSelectChat }: ChatListProps
         )}
       </div>
     </div>
+    </>
   )
 }
