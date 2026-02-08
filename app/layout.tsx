@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Messaging Platform',
-  description: 'A modern messaging platform',
+  title: 'Messaging Platform | Real-time Chat & DMs',
+  description: 'Advanced messaging platform with support for voice messages, file attachments, emoji reactions, and group chats',
+  keywords: ['messaging', 'chat', 'dm', 'voice messages', 'real-time'],
 }
 
 export const viewport = {
