@@ -39,15 +39,16 @@ export default function ChatList({ selectedChatId, onSelectChat }: ChatListProps
       setLoading(true)
       const response = await fetch('/api/chats')
       const data = await response.json()
-      setChats(data)
+      setChats(Array.isArray(data) ? data : [])
     } catch (error) {
       console.log('[v0] Error fetching chats:', error)
+      setChats([])
     } finally {
       setLoading(false)
     }
   }
 
-  const filteredChats = chats.filter(
+  const filteredChats = (Array.isArray(chats) ? chats : []).filter(
     (chat) =>
       chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       chat.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase())

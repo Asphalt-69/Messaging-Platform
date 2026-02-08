@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser()
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json([], { status: 200 })
     }
 
     // Fetch all conversations for the user
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     if (error) throw error
 
     // Map conversations to chat format
-    const chats = data.map((conv: any) => ({
+    const chats = (data || []).map((conv: any) => ({
       id: conv.id,
       name: conv.name,
       avatar: conv.avatar,
@@ -40,9 +40,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(chats)
   } catch (error) {
     console.error('Error fetching chats:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch chats' },
-      { status: 500 }
-    )
+    return NextResponse.json([], { status: 200 })
   }
 }
