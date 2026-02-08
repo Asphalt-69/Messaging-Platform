@@ -16,12 +16,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    // Check localStorage and system preference
     const savedTheme = localStorage.getItem('theme') as Theme | null
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light')
+    
     setTheme(initialTheme)
     document.documentElement.classList.toggle('dark', initialTheme === 'dark')
+    setMounted(true)
   }, [])
 
   const toggleTheme = () => {
@@ -33,8 +35,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     })
   }
 
-  if (!mounted) return <>{children}</>
-
+  // Provide context even before mount to prevent errors
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}
